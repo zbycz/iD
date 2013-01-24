@@ -5,7 +5,7 @@ iD.Map = function() {
         projection = d3.geo.mercator().scale(1024),
         roundedProjection = iD.svg.RoundProjection(projection),
         zoom = d3.behavior.zoom()
-            .translate(projection.translate())
+            .translate([0, 0])
             .scale(projection.scale())
             .scaleExtent([1024, 256 * Math.pow(2, 24)])
             .on('zoom', zoomPan),
@@ -133,7 +133,10 @@ iD.Map = function() {
         }
 
         projection
-            .translate(d3.event.translate)
+            .center(projection.invert([
+                d3.event.translate[0],
+                d3.event.translate[1]
+            ]))
             .scale(d3.event.scale);
 
         var ascale = d3.event.scale;
@@ -149,6 +152,7 @@ iD.Map = function() {
 
         tilegroup.style(transformProp, transform);
         surface.style(transformProp, transform);
+
         queueRedraw();
     }
 
@@ -177,18 +181,6 @@ iD.Map = function() {
 
     var queueRedraw = _.debounce(redraw, 200);
 
-    function pointLocation(p) {
-        var translate = projection.translate(),
-            scale = projection.scale();
-        return [(p[0] - translate[0]) / scale, (p[1] - translate[1]) / scale];
-    }
-
-    function locationPoint(l) {
-        var translate = projection.translate(),
-            scale = projection.scale();
-        return [l[0] * scale + translate[0], l[1] * scale + translate[1]];
-    }
-
     map.mouseCoordinates = function() {
         try {
             return projection.invert(d3.mouse(surface.node()));
@@ -211,33 +203,19 @@ iD.Map = function() {
     };
 
     function setZoom(z) {
-        var scale = 256 * Math.pow(2, z),
-            center = pxCenter(),
-            l = pointLocation(center);
-        scale = Math.max(1024, Math.min(256 * Math.pow(2, 24), scale));
-        projection.scale(scale);
+        projection.scale(256 << z);
         zoom.scale(projection.scale());
-        var t = projection.translate();
-        l = locationPoint(l);
-        t[0] += center[0] - l[0];
-        t[1] += center[1] - l[1];
-        projection.translate(t);
-        zoom.translate(projection.translate());
     }
 
     function setCenter(loc) {
-        var t = projection.translate(),
-            c = pxCenter(),
-            ll = projection(loc);
-        projection.translate([
-            t[0] - ll[0] + c[0],
-            t[1] - ll[1] + c[1]]);
-        zoom.translate(projection.translate());
+        projection.center(loc);
+        zoom.translate(projection([0, 0]));
     }
 
     map.size = function(_) {
         if (!arguments.length) return dimensions;
         dimensions = _;
+        projection.translate(pxCenter());
         surface.size(dimensions);
         background.size(dimensions);
         return redraw();
@@ -248,7 +226,7 @@ iD.Map = function() {
 
     map.center = function(loc) {
         if (!arguments.length) {
-            return projection.invert(pxCenter());
+            return projection.center();
         } else {
             setCenter(loc);
             return redraw();
