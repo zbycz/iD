@@ -13,6 +13,8 @@ iD.Map = function(context) {
         minzoom = 0,
         background = iD.Background()
             .projection(projection),
+        gpx = iD.Gpx()
+            .projection(projection),
         transformProp = iD.util.prefixCSSProperty('Transform'),
         points = iD.svg.Points(roundedProjection, context),
         vertices = iD.svg.Vertices(roundedProjection, context),
@@ -31,6 +33,9 @@ iD.Map = function(context) {
 
         tilegroup = selection.append('div')
             .attr('id', 'tile-g');
+
+        gpxgroup = selection.append('div')
+            .attr('id', 'gpx-g');
 
         var supersurface = selection.append('div')
             .style('position', 'absolute');
@@ -51,6 +56,7 @@ iD.Map = function(context) {
         map.size(selection.size());
         map.surface = surface;
         map.tilesurface = tilegroup;
+        map.gpxsurface = gpxgroup;
 
         supersurface
             .call(tail);
@@ -132,6 +138,7 @@ iD.Map = function(context) {
             'translate(' + tX + 'px,' + tY + 'px) ';
 
         tilegroup.style(transformProp, transform);
+        gpxgroup.style(transformProp, transform);
         surface.style(transformProp, transform);
         queueRedraw();
 
@@ -143,6 +150,7 @@ iD.Map = function(context) {
         if (!prop || prop === 'none') return false;
         surface.node().style[transformProp] = '';
         tilegroup.node().style[transformProp] = '';
+        gpxgroup.node().style[transformProp] = '';
         return true;
     }
 
@@ -166,6 +174,7 @@ iD.Map = function(context) {
 
         if (!difference) {
             tilegroup.call(background);
+            gpxgroup.call(gpx);
         }
 
         if (map.editable()) {
