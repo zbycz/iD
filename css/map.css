@@ -30,6 +30,22 @@ use {
     pointer-events: none;
 }
 
+#surface .point,
+#surface .vertex,
+#surface .line,
+#surface .area {
+    -webkit-transition: opacity 200ms;
+       -moz-transition: opacity 200ms;
+            transition: opacity 200ms;
+}
+
+#surface.highlight .point:not(.hover),
+#surface.highlight .vertex:not(.hover),
+#surface.highlight .line:not(.hover),
+#surface.highlight .area:not(.hover) {
+    opacity: 0.2;
+}
+
 g.point .shadow,
 g.vertex .shadow,
 g.midpoint .shadow {

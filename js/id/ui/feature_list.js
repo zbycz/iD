@@ -126,12 +126,16 @@ iD.ui.FeatureList = function(context) {
         }
 
         function mouseover(entity) {
-            context.surface().selectAll(iD.util.entityOrMemberSelector([entity.id], context.graph()))
+            context.surface()
+                .classed('highlight', true)
+                .selectAll(iD.util.entityOrMemberSelector([entity.id], context.graph()))
                 .classed('hover', true);
         }
 
         function mouseout() {
-            context.surface().selectAll('.hover')
+            context.surface()
+                .classed('highlight', false)
+                .selectAll('.hover')
                 .classed('hover', false);
         }
 
