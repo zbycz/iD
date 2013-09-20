@@ -178,6 +178,8 @@ iD.ui = function(context) {
 
     ui.sidebar = iD.ui.Sidebar(context);
 
+    iD.Importer(context);
+
     return ui;
 };
 
