@@ -12,6 +12,7 @@ iD.Importer = function(context, dispatch) {
         d3.event.preventDefault();
         var allnodes = [];
         var ways = d3.event.data.map(function(line) {
+            line.pop();
             var nodes = line.map(function(l) {
                 return iD.Node({
                     loc: [l.lng, l.lat]
@@ -19,9 +20,10 @@ iD.Importer = function(context, dispatch) {
             });
             allnodes = allnodes.concat(nodes);
             return iD.Way({
+                tags: { area: 'yes' },
                 nodes: nodes.map(function(n) {
                     return n.id;
-                })
+                }).concat([nodes[0].id])
             });
         });
 
