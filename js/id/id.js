@@ -36,6 +36,7 @@ window.iD = function () {
         container,
         ui = iD.ui(context),
         connection = iD.Connection(),
+        plane = iD.Plane(connection),
         locale = iD.detect().locale,
         localePath;
 
@@ -74,6 +75,7 @@ window.iD = function () {
     /* Straight accessors. Avoid using these if you can. */
     context.ui = function() { return ui; };
     context.connection = function() { return connection; };
+    context.plane = function() { return plane; };
     context.history = function() { return history; };
 
     /* History */

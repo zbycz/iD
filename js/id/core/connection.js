@@ -3,9 +3,7 @@ iD.Connection = function() {
     var event = d3.dispatch('authenticating', 'authenticated', 'auth', 'loading', 'load', 'loaded'),
         url = 'http://www.openstreetmap.org',
         connection = {},
-        inflight = {},
-        loadedTiles = {},
-        tileZoom = 16,
+        inflight = 0,
         oauth = osmAuth({
             url: 'http://www.openstreetmap.org',
             oauth_consumer_key: '5A043yRSEugj4DJ5TljuapfnrflWDte8jTOcWLlT',
@@ -18,8 +16,7 @@ iD.Connection = function() {
         memberStr = 'member',
         nodeStr = 'node',
         wayStr = 'way',
-        relationStr = 'relation',
-        off;
+        relationStr = 'relation';
 
     connection.changesetURL = function(changesetId) {
         return url + '/browse/changeset/' + changesetId;
@@ -38,17 +35,32 @@ iD.Connection = function() {
     };
 
     connection.loadFromURL = function(url, callback) {
-        function done(dom) {
-            return callback(null, parse(dom));
-        }
-        return d3.xml(url).get().on('load', done);
+        if (inflight++ === 0)
+            event.loading();
+
+        return d3.xml(url).get()
+            .on('load', function done(dom) {
+                callback(null, parse(dom));
+
+                if (--inflight === 0)
+                    event.loaded();
+            });
+    };
+
+    connection.loadExtent = function(extent, callback) {
+        return connection.loadFromURL(
+            url + '/api/0.6/map?bbox=' + extent.toParam(),
+            function(err, entities) {
+                event.load(err, {data: entities, extent: extent});
+                if (callback) callback(err, entities);
+            });
     };
 
     connection.loadEntity = function(id, callback) {
         var type = iD.Entity.id.type(id),
             osmID = iD.Entity.id.toOSM(id);
 
-        connection.loadFromURL(
+        return connection.loadFromURL(
             url + '/api/0.6/' + type + '/' + osmID + (type !== 'node' ? '/full' : ''),
             function(err, entities) {
                 event.load(err, {data: entities});
@@ -280,76 +292,6 @@ iD.Connection = function() {
             .on('error', callback);
     };
 
-    function abortRequest(i) { i.abort(); }
-
-    connection.tileZoom = function(_) {
-        if (!arguments.length) return tileZoom;
-        tileZoom = _;
-        return connection;
-    };
-
-    connection.loadTiles = function(projection, dimensions) {
-
-        if (off) return;
-
-        var s = projection.scale() * 2 * Math.PI,
-            z = Math.max(Math.log(s) / Math.log(2) - 8, 0),
-            ts = 256 * Math.pow(2, z - tileZoom),
-            origin = [
-                s / 2 - projection.translate()[0],
-                s / 2 - projection.translate()[1]];
-
-        var tiles = d3.geo.tile()
-            .scaleExtent([tileZoom, tileZoom])
-            .scale(s)
-            .size(dimensions)
-            .translate(projection.translate())()
-            .map(function(tile) {
-                var x = tile[0] * ts - origin[0],
-                    y = tile[1] * ts - origin[1];
-
-                return {
-                    id: tile.toString(),
-                    extent: iD.geo.Extent(
-                        projection.invert([x, y + ts]),
-                        projection.invert([x + ts, y]))
-                };
-            });
-
-        function bboxUrl(tile) {
-            return url + '/api/0.6/map?bbox=' + tile.extent.toParam();
-        }
-
-        _.filter(inflight, function(v, i) {
-            var wanted = _.find(tiles, function(tile) {
-                return i === tile.id;
-            });
-            if (!wanted) delete inflight[i];
-            return !wanted;
-        }).map(abortRequest);
-
-        tiles.forEach(function(tile) {
-            var id = tile.id;
-
-            if (loadedTiles[id] || inflight[id]) return;
-
-            if (_.isEmpty(inflight)) {
-                event.loading();
-            }
-
-            inflight[id] = connection.loadFromURL(bboxUrl(tile), function(err, parsed) {
-                loadedTiles[id] = true;
-                delete inflight[id];
-
-                event.load(err, _.extend({data: parsed}, tile));
-
-                if (_.isEmpty(inflight)) {
-                    event.loaded();
-                }
-            });
-        });
-    };
-
     connection.switch = function(options) {
         url = options.url;
         oauth.options(_.extend({
@@ -357,25 +299,6 @@ iD.Connection = function() {
             done: authenticated
         }, options));
         event.auth();
-        connection.flush();
-        return connection;
-    };
-
-    connection.toggle = function(_) {
-        off = !_;
-        return connection;
-    };
-
-    connection.flush = function() {
-        _.forEach(inflight, abortRequest);
-        loadedTiles = {};
-        inflight = {};
-        return connection;
-    };
-
-    connection.loadedTiles = function(_) {
-        if (!arguments.length) return loadedTiles;
-        loadedTiles = _;
         return connection;
     };
 
