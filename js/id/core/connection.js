@@ -51,7 +51,7 @@ iD.Connection = function() {
         return connection.loadFromURL(
             url + '/api/0.6/map?bbox=' + extent.toParam(),
             function(err, entities) {
-                event.load(err, {data: entities, extent: extent});
+                event.load(err, {entities: entities, extent: extent});
                 if (callback) callback(err, entities);
             });
     };
@@ -63,7 +63,7 @@ iD.Connection = function() {
         return connection.loadFromURL(
             url + '/api/0.6/' + type + '/' + osmID + (type !== 'node' ? '/full' : ''),
             function(err, entities) {
-                event.load(err, {data: entities});
+                event.load(err, {entities: entities});
                 if (callback) callback(err, entities && _.find(entities, function(e) { return e.id === id; }));
             });
     };

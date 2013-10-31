@@ -45,7 +45,7 @@ window.iD = function () {
     }
 
     connection.on('load.context', function loadContext(err, result) {
-        history.merge(result.data, result.extent);
+        history.merge(result.entities, result.extent);
     });
 
     context.preauth = function(options) {

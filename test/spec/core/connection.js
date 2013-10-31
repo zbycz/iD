@@ -21,12 +21,6 @@ describe('iD.Connection', function () {
         });
     });
 
-    describe('#flush', function() {
-        it('flushes the connection', function() {
-            expect(c.flush()).to.eql(c);
-        });
-    });
-
     describe("#switch", function() {
         it("changes the URL", function() {
             c.switch({
@@ -116,7 +110,7 @@ describe('iD.Connection', function () {
         it('emits a load event', function(done) {
             c.loadEntity('n1');
             c.on('load', function(error, result) {
-                expect(result.data[0]).to.be.an.instanceOf(iD.Node);
+                expect(result.entities[0]).to.be.an.instanceOf(iD.Node);
                 done();
             });
 

@@ -1,6 +1,6 @@
 describe("iD.Quadtree", function() {
     var connection = {},
-        Quadtree   = iD.Quadtree(connection);
+        Quadtree   = iD.Quadtree(connection).densityThreshold(2);
 
     function fail() {
         throw new Error("failed");
@@ -16,16 +16,16 @@ describe("iD.Quadtree", function() {
         });
     });
 
-    describe("#probe", function() {
+    describe("#load", function() {
         it("loads a data tile at the desired depth and calls the dense callback if it's dense", function(done) {
             var q = Quadtree(0, 0, 0);
 
             connection.loadExtent = function(extent, cb) {
                 expect(extent).to.eql(q.extent());
-                cb(null, {dense: true});
+                cb(null, {length: 3});
             };
 
-            q.probe(q.extent(), 0, done, fail);
+            q.load(q.extent(), 0, done, fail);
         });
 
         it("loads a data tile at the desired depth and calls the sparse callback if it's sparse", function(done) {
@@ -33,10 +33,10 @@ describe("iD.Quadtree", function() {
 
             connection.loadExtent = function(extent, cb) {
                 expect(extent).to.eql(q.extent());
-                cb(null, {dense: false});
+                cb(null, {length: 1});
             };
 
-            q.probe(q.extent(), 0, fail, done);
+            q.load(q.extent(), 0, fail, done);
         });
 
         it("recurses (dense case)", function() {
@@ -45,10 +45,10 @@ describe("iD.Quadtree", function() {
 
             connection.loadExtent = function(extent, cb) {
                 extents.push(extent);
-                cb(null, {dense: true});
+                cb(null, {length: 3});
             };
 
-            q.probe(q.extent(), 1);
+            q.load(q.extent(), 1);
 
             expect(extents).to.eql([
                 q.se.extent(),
@@ -64,10 +64,10 @@ describe("iD.Quadtree", function() {
 
             connection.loadExtent = function(extent, cb) {
                 extents.push(extent);
-                cb(null, {dense: false});
+                cb(null, {length: 1});
             };
 
-            q.probe(q.extent(), 1);
+            q.load(q.extent(), 1);
 
             expect(extents).to.eql([
                 q.se.extent(),
@@ -96,12 +96,12 @@ describe("iD.Quadtree", function() {
 
             connection.loadExtent = function(extent, cb) {
                 extents.push(extent);
-                cb(null, {dense:
+                cb(null, {length:
                     (q.nw && q.nw.se && extent.equals(q.nw.se.extent())) ||
-                    (q.se && q.se.nw && extent.equals(q.se.nw.extent()))});
+                    (q.se && q.se.nw && extent.equals(q.se.nw.extent())) ? 3 : 1});
             };
 
-            q.probe(q.extent(), 2);
+            q.load(q.extent(), 2);
 
             expect(extents).to.eql([
                 q.se.nw.extent(),
