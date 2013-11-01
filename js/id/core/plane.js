@@ -13,9 +13,13 @@ iD.Plane = function(connection) {
 
     // Ensure that data tiles covering the given extent are loaded. Plane
     // will determine the appropriate tile zoom levels to use.
-    plane.load = function(extent) {
+    //
+    // The `extent` and `zoom` parameter specify the current map values.
+    // If it is determined that data is too dense to display given those
+    // values, loading will be aborted.
+    plane.load = function(extent, zoom) {
         root.abort(extent);
-        return root.load(extent, 16);
+        return root.load(extent, zoom, 16);
     };
 
     // Return the maximum zoom level of the tiles covering the given extent;

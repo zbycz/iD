@@ -35,7 +35,7 @@ iD.Quadtree = function(connection) {
         console.log.apply(console, [space, this.x, this.y, this.z].concat(arguments))
     };
 
-    Node.prototype.load = function(extent, z, dense, sparse) {
+    Node.prototype.load = function(extent, minZ, maxZ, dense, sparse) {
         var point = extent.center();
 
         if (!this.contains(point))
@@ -44,24 +44,25 @@ iD.Quadtree = function(connection) {
         if (this.data)
             return;
 
-        if (this.z < z) {
+        if (this.z < maxZ) {
             var ifDense = function() {
-                this.nw.load(extent.intersection(this.nw.extent()), z);
-                this.ne.load(extent.intersection(this.ne.extent()), z);
-                this.sw.load(extent.intersection(this.sw.extent()), z);
-                this.se.load(extent.intersection(this.se.extent()), z);
+                if (this.z + 1 >= minZ) return; // Too dense; abort.
+                this.nw.load(extent.intersection(this.nw.extent()), minZ, maxZ);
+                this.ne.load(extent.intersection(this.ne.extent()), minZ, maxZ);
+                this.sw.load(extent.intersection(this.sw.extent()), minZ, maxZ);
+                this.se.load(extent.intersection(this.se.extent()), minZ, maxZ);
                 if (dense) dense();
             }.bind(this);
 
             var ifSparse = function() {
-                this.load(extent, this.z, dense, sparse);
+                this.load(extent, minZ, this.z, dense, sparse);
             }.bind(this);
 
             this.split();
-            this.nw.load(extent, z, ifDense, ifSparse); // Only one of
-            this.ne.load(extent, z, ifDense, ifSparse); // these will
-            this.sw.load(extent, z, ifDense, ifSparse); // contain the
-            this.se.load(extent, z, ifDense, ifSparse); // center point.
+            this.nw.load(extent, minZ, maxZ, ifDense, ifSparse); // Only one of
+            this.ne.load(extent, minZ, maxZ, ifDense, ifSparse); // these will
+            this.sw.load(extent, minZ, maxZ, ifDense, ifSparse); // contain the
+            this.se.load(extent, minZ, maxZ, ifDense, ifSparse); // center point.
 
         } else if (!this.request) {
             this.log("loading");
@@ -102,11 +103,11 @@ iD.Quadtree = function(connection) {
         if (!this.extent().intersects(extent))
             return 0;
 
-        if (this.data)
+        if (this.data && this.data.length > densityThreshold)
             return this.z;
 
         if (!this.nw)
-            return 16;
+            return 0;
 
         return Math.max(this.nw.zoom(extent),
                         this.ne.zoom(extent),

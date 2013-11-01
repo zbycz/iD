@@ -223,8 +223,10 @@ iD.Map = function(context) {
             supersurface.call(context.background());
         }
 
+        console.log(map.editable(), context.minZoom());
+
         if (map.editable()) {
-            context.plane().load(map.extent());
+            context.plane().load(map.extent(), map.zoom());
             drawVector(difference, extent);
         } else {
             editOff();

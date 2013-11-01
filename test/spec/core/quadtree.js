@@ -25,7 +25,7 @@ describe("iD.Quadtree", function() {
                 cb(null, {length: 3});
             };
 
-            q.load(q.extent(), 0, done, fail);
+            q.load(q.extent(), 0, 0, done, fail);
         });
 
         it("loads a data tile at the desired depth and calls the sparse callback if it's sparse", function(done) {
@@ -36,7 +36,7 @@ describe("iD.Quadtree", function() {
                 cb(null, {length: 1});
             };
 
-            q.load(q.extent(), 0, fail, done);
+            q.load(q.extent(), 0, 0, fail, done);
         });
 
         it("recurses (dense case)", function() {
@@ -48,7 +48,7 @@ describe("iD.Quadtree", function() {
                 cb(null, {length: 3});
             };
 
-            q.load(q.extent(), 1);
+            q.load(q.extent(), 2, 1);
 
             expect(extents).to.eql([
                 q.se.extent(),
@@ -67,7 +67,7 @@ describe("iD.Quadtree", function() {
                 cb(null, {length: 1});
             };
 
-            q.load(q.extent(), 1);
+            q.load(q.extent(), 2, 1);
 
             expect(extents).to.eql([
                 q.se.extent(),
@@ -101,7 +101,7 @@ describe("iD.Quadtree", function() {
                     (q.se && q.se.nw && extent.equals(q.se.nw.extent())) ? 3 : 1});
             };
 
-            q.load(q.extent(), 2);
+            q.load(q.extent(), 3, 2);
 
             expect(extents).to.eql([
                 q.se.nw.extent(),
@@ -119,6 +119,22 @@ describe("iD.Quadtree", function() {
 
                 q.sw.ne.extent(),
                 q.sw.extent()
+            ]);
+        });
+
+        it("aborts when too dense for provided zoom", function() {
+            var q = Quadtree(0, 0, 0),
+                extents = [];
+
+            connection.loadExtent = function(extent, cb) {
+                extents.push(extent);
+                cb(null, {length: 3});
+            };
+
+            q.load(q.extent(), 1, 1);
+
+            expect(extents).to.eql([
+                q.se.extent()
             ]);
         });
     });

@@ -51,8 +51,8 @@ iD.Connection = function() {
         return connection.loadFromURL(
             url + '/api/0.6/map?bbox=' + extent.toParam(),
             function(err, entities) {
-                event.load(err, {entities: entities, extent: extent});
                 if (callback) callback(err, entities);
+                event.load(err, {entities: entities, extent: extent});
             });
     };
 
