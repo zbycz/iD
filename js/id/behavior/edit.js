@@ -1,12 +1,10 @@
 iD.behavior.Edit = function(context) {
     function edit() {
-        context.map()
-            .minzoom(16);
+        context.map().zoomFloor(true);
     }
 
     edit.off = function() {
-        context.map()
-            .minzoom(0);
+        context.map().zoomFloor(false);
     };
 
     return edit;

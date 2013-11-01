@@ -185,6 +185,10 @@ window.iD = function () {
         });
     };
 
+    context.minZoom = function() {
+        return plane.zoom(map.extent());
+    };
+
     context.editable = function() {
         return map.editable() && mode && mode.id !== 'save';
     };

@@ -46,12 +46,6 @@ describe('iD.Map', function() {
         });
     });
 
-    describe('#minzoom', function() {
-        it('is zero by default', function() {
-            expect(map.minzoom()).to.equal(0);
-        });
-    });
-
     describe('#center', function() {
         it('gets and sets center', function() {
             expect(map.center([0, 0])).to.equal(map);

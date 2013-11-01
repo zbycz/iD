@@ -11,7 +11,7 @@ iD.Map = function(context) {
         dblclickEnabled = true,
         transformStart,
         transformed = false,
-        minzoom = 0,
+        zoomFloor = false,
         transformProp = iD.util.prefixCSSProperty('Transform'),
         points = iD.svg.Points(roundedProjection, context),
         vertices = iD.svg.Vertices(roundedProjection, context),
@@ -164,11 +164,12 @@ iD.Map = function(context) {
             }
         }
 
-        if (Math.log(d3.event.scale / Math.LN2 - 8) < minzoom + 1) {
+        var minzoom = context.minZoom();
+        if (zoomFloor && Math.log(d3.event.scale / Math.LN2 - 8) < minzoom) {
             iD.ui.flash(context.container())
                 .select('.content')
                 .text(t('cannot_zoom'));
-            return setZoom(16, true);
+            return setZoom(minzoom, true);
         }
 
         projection
@@ -354,7 +355,7 @@ iD.Map = function(context) {
     map.zoomTo = function(entity, zoomLimits) {
         var extent = entity.extent(context.graph()),
             zoom = map.extentZoom(extent);
-        zoomLimits = zoomLimits || [16, 20];
+        zoomLimits = zoomLimits || [context.minZoom(), 20];
         map.centerZoom(extent.center(), Math.min(Math.max(zoom, zoomLimits[0]), zoomLimits[1]));
     };
 
@@ -412,12 +413,12 @@ iD.Map = function(context) {
     };
 
     map.editable = function() {
-        return map.zoom() >= context.plane().zoom(map.extent());
+        return map.zoom() >= context.minZoom();
     };
 
-    map.minzoom = function(_) {
-        if (!arguments.length) return minzoom;
-        minzoom = _;
+    map.zoomFloor = function(_) {
+        if (!arguments.length) return zoomFloor;
+        zoomFloor = _;
         return map;
     };
 
