@@ -122,4 +122,29 @@ describe("iD.Quadtree", function() {
             ]);
         });
     });
+
+    describe("#zoom", function() {
+        it("returns 16 for unloaded tiles", function() {
+            var q = Quadtree(0, 0, 0);
+            expect(q.zoom(q.extent())).to.equal(16);
+        });
+
+        it("returns 0 for tiles which don't intersect the extent", function() {
+            var q1 = Quadtree(0, 0, 1),
+                q2 = Quadtree(10, 10, 2);
+            expect(q1.zoom(q2.extent())).to.equal(0);
+        });
+
+        it("returns the maximum of child zooms", function() {
+            var q = Quadtree(0, 0, 0);
+
+            q.split();
+            q.ne.data = q.sw.data = q.se.data = {};
+
+            q.nw.split();
+            q.nw.nw.data = q.nw.ne.data = q.nw.sw.data = q.nw.se.data = {};
+
+            expect(q.zoom(q.extent())).to.equal(2);
+        });
+    });
 });

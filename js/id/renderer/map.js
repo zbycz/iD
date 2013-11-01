@@ -412,7 +412,7 @@ iD.Map = function(context) {
     };
 
     map.editable = function() {
-        return map.zoom() >= 16;
+        return map.zoom() >= context.plane().zoom(map.extent());
     };
 
     map.minzoom = function(_) {
