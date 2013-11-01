@@ -74,7 +74,8 @@ iD.Quadtree = function(connection) {
                     if (dense) dense();
                 } else if (sparse) {
                     this.log(entities.length, "(sparse)");
-                    sparse(); // still recursing back up
+                    this.data = {length: entities.length};
+                    sparse();
                 } else {
                     this.data = entities;
                 }
@@ -82,8 +83,23 @@ iD.Quadtree = function(connection) {
         }
     };
 
+    // Abort pending requests outside extent.
+    Node.prototype.abort = function(extent) {
+        if (!this.extent().intersects(extent) && this.request) {
+            this.request.abort();
+            this.request = null;
+        }
+
+        if (this.nw) {
+            this.nw.abort(extent);
+            this.ne.abort(extent);
+            this.sw.abort(extent);
+            this.se.abort(extent);
+        }
+    };
+
     Node.prototype.zoom = function(extent) {
-        if (!this.intersects(extent))
+        if (!this.extent().intersects(extent))
             return 0;
 
         if (this.data)

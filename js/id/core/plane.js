@@ -14,6 +14,7 @@ iD.Plane = function(connection) {
     // Ensure that data tiles covering the given extent are loaded. Plane
     // will determine the appropriate tile zoom levels to use.
     plane.load = function(extent) {
+        root.abort(extent);
         return root.load(extent, 16);
     };
 
@@ -21,10 +22,6 @@ iD.Plane = function(connection) {
     // i.e. the _minimum_ zoom level at which data will be displayed.
     plane.zoom = function(extent) {
         return root.zoom(extent);
-    };
-
-    plane.abort = function() {
-        return root.abort();
     };
 
     return plane;
