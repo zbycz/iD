@@ -1,6 +1,6 @@
 iD.Quadtree = function(connection) {
     var SM = new SphericalMercator(),
-        densityThreshold = 1024;
+        densityThreshold = 512;
 
     function Node(x, y, z) {
         this.x = x;
@@ -29,6 +29,12 @@ iD.Quadtree = function(connection) {
         return point.minX === this.x && point.minY === this.y;
     };
 
+    Node.prototype.log = function() {
+        var space = '';
+        for (var i = 0; i < this.z; i++) space += ' ';
+        console.log.apply(console, [space, this.x, this.y, this.z].concat(arguments))
+    };
+
     Node.prototype.load = function(extent, z, dense, sparse) {
         var point = extent.center();
 
@@ -48,7 +54,7 @@ iD.Quadtree = function(connection) {
             }.bind(this);
 
             var ifSparse = function() {
-                this.load(extent, z - 1, dense, sparse);
+                this.load(extent, this.z, dense, sparse);
             }.bind(this);
 
             this.split();
@@ -58,14 +64,16 @@ iD.Quadtree = function(connection) {
             this.se.load(extent, z, ifDense, ifSparse); // center point.
 
         } else if (!this.request) {
-            console.log(this.x, this.y, this.z);
+            this.log("loading");
             this.request = connection.loadExtent(this.extent(), function(err, entities) {
                 this.request = null;
 
                 if (entities.length > densityThreshold) {
+                    this.log(entities.length, "(dense)");
                     this.data = entities;
                     if (dense) dense();
                 } else if (sparse) {
+                    this.log(entities.length, "(sparse)");
                     sparse(); // still recursing back up
                 } else {
                     this.data = entities;
