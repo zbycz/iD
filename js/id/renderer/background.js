@@ -2,6 +2,7 @@ iD.Background = function(context) {
     var dispatch = d3.dispatch('change'),
         baseLayer = iD.TileLayer()
             .projection(context.projection),
+        debugLayer = iD.DebugLayer(context),
         gpxLayer = iD.GpxLayer(context, dispatch)
             .projection(context.projection),
         overlayLayers = [];
@@ -70,6 +71,14 @@ iD.Background = function(context) {
             .attr('class', 'layer-layer background-layer');
 
         base.call(baseLayer);
+
+        var debug = selection.selectAll('.debug-layer')
+            .data([0]);
+
+        debug.enter().insert('div', '.layer-data')
+            .attr('class', 'layer-layer debug-layer');
+
+        debug.call(debugLayer);
 
         var gpx = selection.selectAll('.gpx-layer')
             .data([0]);

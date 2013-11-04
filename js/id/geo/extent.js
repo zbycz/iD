@@ -53,6 +53,13 @@ _.extend(iD.geo.Extent.prototype, {
                obj[1][1] >= this[0][1];
     },
 
+    contains: function(point) {
+        return this[0][0] <= point[0] &&
+               this[1][0] >= point[0] &&
+               this[0][1] <= point[1] &&
+               this[1][1] >= point[1];
+    },
+
     intersection: function(obj) {
         if (!this.intersects(obj)) return new iD.geo.Extent();
         return new iD.geo.Extent([Math.max(obj[0][0], this[0][0]),

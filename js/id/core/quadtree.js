@@ -24,11 +24,6 @@ iD.Quadtree = function(connection) {
         return iD.geo.Extent([bbox[0], bbox[1]], [bbox[2], bbox[3]]);
     };
 
-    Node.prototype.contains = function(point) {
-        point = SM.xyz([point[0], point[1], point[0], point[1]], this.z);
-        return point.minX === this.x && point.minY === this.y;
-    };
-
     Node.prototype.log = function() {
         var space = '';
         for (var i = 0; i < this.z; i++) space += ' ';
@@ -38,7 +33,7 @@ iD.Quadtree = function(connection) {
     Node.prototype.load = function(extent, minZ, maxZ, dense, sparse) {
         var point = extent.center();
 
-        if (!this.contains(point))
+        if (!this.extent().contains(point))
             return;
 
         if (this.data)
@@ -66,19 +61,27 @@ iD.Quadtree = function(connection) {
 
         } else if (!this.request) {
             this.log("loading");
+            this.status = 'loading';
             this.request = connection.loadExtent(this.extent(), function(err, entities) {
                 this.request = null;
 
-                if (entities.length > densityThreshold) {
-                    this.log(entities.length, "(dense)");
+                var e = this.extent(),
+                    c = 0;
+
+                for (var i = 0; i < entities.length; i++) {
+                    var entity = entities[i];
+                    if (entity.type === 'node' && e.contains(entity.loc))
+                        c++;
+                }
+
+                if (c > densityThreshold) {
+                    this.status = 'dense (' + c + ')';
                     this.data = entities;
                     if (dense) dense();
-                } else if (sparse) {
-                    this.log(entities.length, "(sparse)");
-                    this.data = {length: entities.length};
-                    sparse();
                 } else {
+                    this.status = 'sparse (' + c + ')';
                     this.data = entities;
+                    if (sparse) sparse();
                 }
             }.bind(this));
         }
@@ -113,6 +116,20 @@ iD.Quadtree = function(connection) {
                         this.ne.zoom(extent),
                         this.sw.zoom(extent),
                         this.se.zoom(extent));
+    };
+
+    Node.prototype.nodes = function(extent) {
+        if (!this.extent().intersects(extent))
+            return [];
+
+        if (this.status || !this.nw)
+            return [this];
+
+        return _.flatten([
+            this.nw.nodes(extent),
+            this.ne.nodes(extent),
+            this.sw.nodes(extent),
+            this.se.nodes(extent)]);
     };
 
     function quadtree(x, y, z) {

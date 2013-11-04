@@ -28,5 +28,9 @@ iD.Plane = function(connection) {
         return root.zoom(extent);
     };
 
+    plane.nodes = function(extent) {
+        return root.nodes(extent);
+    };
+
     return plane;
 };
