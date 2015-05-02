@@ -38,38 +38,50 @@ iD.behavior.Draw = function(context) {
             })[0] : d3.mouse(p);
         }
 
-        var element = d3.select(this),
-            touchId = d3.event.touches ? d3.event.changedTouches[0].identifier : null,
-            time = +new Date(),
-            pos = point();
+        if (d3.event.shiftKey) {
+            context.mode().option = 'orthogonal';
+            d3.event.preventDefault();
+            d3.event.stopPropagation();
+            click();
 
-        element.on('mousemove.draw', null);
+        } else {
+            var element = d3.select(this),
+                touchId = d3.event.touches ? d3.event.changedTouches[0].identifier : null,
+                time = +new Date(),
+                pos = point();
 
-        d3.select(window).on('mouseup.draw', function() {
-            element.on('mousemove.draw', mousemove);
-            if (iD.geo.euclideanDistance(pos, point()) < closeTolerance ||
-                (iD.geo.euclideanDistance(pos, point()) < tolerance &&
-                (+new Date() - time) < 500)) {
+            element.on('mousemove.draw', null);
 
-                // Prevent a quick second click
-                d3.select(window).on('click.draw-block', function() {
-                    d3.event.stopPropagation();
-                }, true);
+            d3.select(window).on('mouseup.draw', function () {
+                element.on('mousemove.draw', mousemove);
+                if (iD.geo.euclideanDistance(pos, point()) < closeTolerance ||
+                    (iD.geo.euclideanDistance(pos, point()) < tolerance &&
+                    (+new Date() - time) < 500)) {
 
-                context.map().dblclickEnable(false);
+                    // Prevent a quick second click
+                    d3.select(window).on('click.draw-block', function() {
+                        d3.event.stopPropagation();
+                    }, true);
 
-                window.setTimeout(function() {
-                    context.map().dblclickEnable(true);
-                    d3.select(window).on('click.draw-block', null);
-                }, 500);
+                    context.map().dblclickEnable(false);
 
-                click();
-            }
-        });
+                    window.setTimeout(function() {
+                        context.map().dblclickEnable(true);
+                        d3.select(window).on('click.draw-block', null);
+                    }, 500);
+
+                    click();
+                }
+            });
+        }
     }
 
     function mousemove() {
         event.move(datum());
+    }
+
+    function mouseup() {
+        if (context.mode().option === 'orthogonal') click();
     }
 
     function click() {
@@ -124,8 +136,9 @@ iD.behavior.Draw = function(context) {
             .call(keybinding);
 
         d3.select(window)
-            .on('keydown.select', keydown)
-            .on('keyup.select', keyup);
+            .on('mouseup.draw', mouseup)
+            .on('keydown.draw', keydown)
+            .on('keyup.draw', keyup);
 
         keydown();
 
@@ -149,9 +162,8 @@ iD.behavior.Draw = function(context) {
 
         d3.select(window)
             .on('mouseup.draw', null)
-            .on('keydown.select', null)
-            .on('keyup.select', null);
-
+            .on('keydown.draw', null)
+            .on('keyup.draw', null);
 
         d3.select(document)
             .call(keybinding.off);
