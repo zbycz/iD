@@ -9,6 +9,7 @@ iD.Map = function(context) {
             .scaleExtent([1024, 256 * Math.pow(2, 24)])
             .on('zoom', zoomPan),
         dblclickEnabled = true,
+        vertexHoverEnabled = true,
         transformStart,
         transformed = false,
         minzoom = 0,
@@ -61,7 +62,7 @@ iD.Map = function(context) {
         });
 
         surface.on('mouseover.vertices', function() {
-            if (map.editable() && !transformed) {
+            if (vertexHoverEnabled && map.editable() && !transformed) {
                 var hover = d3.event.target.__data__;
                 surface.call(vertices.drawHover, context.graph(), hover, map.extent(), map.zoom());
                 dispatch.drawn({full: false});
@@ -69,7 +70,7 @@ iD.Map = function(context) {
         });
 
         surface.on('mouseout.vertices', function() {
-            if (map.editable() && !transformed) {
+            if (vertexHoverEnabled && map.editable() && !transformed) {
                 var hover = d3.event.relatedTarget && d3.event.relatedTarget.__data__;
                 surface.call(vertices.drawHover, context.graph(), hover, map.extent(), map.zoom());
                 dispatch.drawn({full: false});
@@ -254,6 +255,12 @@ iD.Map = function(context) {
     map.dblclickEnable = function(_) {
         if (!arguments.length) return dblclickEnabled;
         dblclickEnabled = _;
+        return map;
+    };
+
+    map.vertexHoverEnable = function(_) {
+        if (!arguments.length) return vertexHoverEnabled;
+        vertexHoverEnabled = _;
         return map;
     };
 
