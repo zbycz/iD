@@ -165,8 +165,8 @@ iD.modes.Select = function(context, selectedIDs) {
 
         keybinding
             .on('⎋', ret, true)
-            .on('↩', ret, true)
-            .on('space', toggleMenu);
+            .on('↩', ret, true);
+            // .on('space', toggleMenu);
 
         operations.forEach(function(operation) {
             operation.keys.forEach(function(key) {
