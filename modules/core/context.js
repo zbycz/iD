@@ -434,7 +434,7 @@ export function coreContext() {
     });
 
     background.init();
-    presets.init();
+    presets.init(); //tady se tvoří --> čili dobrý modules/presets/index.js#init()
     areaKeys = presets.areaKeys();
 
 

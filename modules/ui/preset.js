@@ -95,11 +95,13 @@ export function uiPreset(context) {
     }
 
 
+    //obsah v "zavírátku"  -- tj. samotný fields preset editoru
     function content(selection) {
+        //fieldsArr obsauje přechorustané preset fieldy -- do přímo UIFieldů()
         if (!fieldsArr) {
             var entity = context.entity(id),
                 geometry = context.geometry(id),
-                presets = context.presets();
+                presets = context.presets(); //strom všech existujících presetů ... modules/presets/index.js  (loadován daty v contextu)
 
             fieldsArr = [];
 
@@ -107,6 +109,7 @@ export function uiPreset(context) {
                 fieldsArr.push(UIField(presets.field('name'), entity));
             }
 
+            // dle geometrie
             preset.fields.forEach(function(field) {
                 if (field.matchGeometry(geometry)) {
                     fieldsArr.push(UIField(field, entity, true));
@@ -117,6 +120,7 @@ export function uiPreset(context) {
                 fieldsArr.push(UIField(presets.field('restrictions'), entity, true));
             }
 
+            // universální??
             presets.universal().forEach(function(field) {
                 if (preset.fields.indexOf(field) < 0) {
                     fieldsArr.push(UIField(field, entity));
@@ -124,6 +128,7 @@ export function uiPreset(context) {
             });
         }
 
+        //některé jsou skryté (asi pak dole v přidávátku)
         var shown = fieldsArr.filter(function(field) { return field.shown(); }),
             notShown = fieldsArr.filter(function(field) { return !field.shown(); });
 

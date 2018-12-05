@@ -10,6 +10,7 @@ export { presetCollection };
 export { presetField };
 export { presetPreset };
 
+//to co nám vrací strom presetůůů nasetovaných
 
 export function presetIndex() {
     // a presetCollection with methods for

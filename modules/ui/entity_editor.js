@@ -106,10 +106,10 @@ export function uiEntityEditor(context) {
         body = body
             .merge(enter);
 
-        body.selectAll('.preset-list-button-wrap')
+        body.selectAll('.preset-list-button-wrap') //hlavní tlačítko název presetu a "chooser"
             .call(reference.button);
 
-        body.selectAll('.preset-list-item')
+        body.selectAll('.preset-list-item') //nadřazený k hlavnímu tlačítku
             .call(reference.body);
 
         body.selectAll('.preset-reset')
@@ -123,7 +123,7 @@ export function uiEntityEditor(context) {
         body.select('.preset-list-item .label')
             .text(activePreset.name());
 
-        body.select('.inspector-preset')
+        body.select('.inspector-preset') //preset editor
             .call(presetEditor
                 .preset(activePreset)
                 .entityID(id)

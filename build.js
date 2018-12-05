@@ -200,7 +200,7 @@ function generatePresets() {
         presets[id] = preset;
     });
 
-    presets = _.merge(presets, suggestionsToPresets(presets));
+    //presets = _.merge(presets, suggestionsToPresets(presets));
     return presets;
 
 }
